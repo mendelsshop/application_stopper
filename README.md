@@ -16,4 +16,5 @@ If they are not, it will stop the application.
     - `-i <time>`: Set the interval for checking the applications.
     - `-w <time>`: Set the time limit for ussing the application for something important.
 - Support for multiple applications having different time limits and intervals.
+- Full GUI and CLI that support changing the time limits and intervals from within the app.
 
