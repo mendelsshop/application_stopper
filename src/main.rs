@@ -1,13 +1,19 @@
 use chrono;
 use std::env::consts::OS;
 use std::io::{self, Write};
-use std::process::Command;
+use std::process::{Command, exit};
 use std::thread;
+use std::time::{Duration, Instant};
 
+use crossterm::{
+    event::{self, Event, KeyCode, KeyEvent, KeyModifiers},
+    terminal,
+};
 // Todo make window pop up on top of all other windows if help is requested and pause discord unrtill help is closed
 fn main() {
     let day = chrono::Local::today();
-    let mut time_left = 0;
+    let mut time_left = 120;
+    let mut help_time= 5; // this defines time for help peroid
     loop {
         // check if its a new day
         if day != chrono::Local::today() {
@@ -40,20 +46,29 @@ fn main() {
         // check if there is time left
         if time_left == 0 && !ps.is_empty() {
             loop {
-                let mut help = String::new();
                 print!("Discord is running!\nIf you are using it for help, type \"help\" to continue using it: ");
                 io::stdout().flush().unwrap();
-                io::stdin()
-                    .read_line(&mut help)
-                    .expect("Failed to read line");
-                if help.trim() == "help" {
-                    // wait 5 minutes
-                    println!("Waiting 5 minutes...");
-                    thread::sleep(std::time::Duration::from_secs(300));
-                    continue;
-                } else {
-                    break;
-                }
+                let help = read_key(Duration::from_secs(60));
+                match help {
+                    Some(KeyEvent {
+                        code: KeyCode::Char('h'),
+                        modifiers: KeyModifiers::NONE,
+                    }) => {
+                        println!("Help requested!");
+                        time_left += 60*help_time;
+
+                },
+                    Some(KeyEvent {
+                        code: KeyCode::Char('c'),
+                        modifiers: KeyModifiers::CONTROL,
+                    }) => {
+                        println!("");
+                        exit(1);
+                    },
+                    _ => {
+                        println!("Help not requested!");
+                    }
+
             }
             println!("Time's up!");
             match OS {
@@ -67,11 +82,32 @@ fn main() {
                     .arg("Discord")
                     .spawn()
                     .expect("failed to close Discord"),
-            };
+            };}
         } else if !ps.is_empty() {
             time_left -= 5;
         }
         // wait for 2 minutes
         thread::sleep(std::time::Duration::from_secs(120));
     }
+}
+
+fn read_key(timeout: Duration) -> Option<KeyEvent> {
+    struct RawModeGuard;
+    impl Drop for RawModeGuard {
+        fn drop(&mut self) {
+            terminal::disable_raw_mode().unwrap();
+        }
+    }
+    
+    terminal::enable_raw_mode().unwrap();
+    let _guard = RawModeGuard;
+    let start = Instant::now();
+    let mut offset = Duration::ZERO;
+    while offset <= timeout && event::poll(timeout - offset).unwrap() {
+        if let Event::Key(event) = event::read().unwrap() {
+            return Some(event);
+        }
+        offset = start.elapsed();
+    }
+    return None;
 }
