@@ -11,6 +11,7 @@ use crossterm::{
     terminal,
 };
 // Todo make window pop up on top of all other windows if help is requested and pause discord unrtill help is closed
+// Todo make the interval for checking for Discord more often
 fn main() {
     let day = chrono::Local::today();
     let mut time_left = 120;
@@ -49,6 +50,7 @@ fn main() {
                 String::from_utf8_lossy(&output.stdout).into()
             }
         };
+        // println!("{}", ps);
         // check if there is time left
         if time_left == 0 && !ps.is_empty() {
             // loop {
