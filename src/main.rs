@@ -48,28 +48,7 @@ fn main() {
             loop {
                 print!("Discord is running!\nIf you are using it for help, type \"help\" to continue using it: ");
                 io::stdout().flush().unwrap();
-                let help = read_key(Duration::from_secs(60));
-                match help {
-                    Some(KeyEvent {
-                        code: KeyCode::Char('h'),
-                        modifiers: KeyModifiers::NONE,
-                    }) => {
-                        println!("Help requested!");
-                        time_left += 60*help_time;
 
-                },
-                    Some(KeyEvent {
-                        code: KeyCode::Char('c'),
-                        modifiers: KeyModifiers::CONTROL,
-                    }) => {
-                        println!("");
-                        exit(1);
-                    },
-                    _ => {
-                        println!("Help not requested!");
-                    }
-
-            }
             println!("Time's up!");
             match OS {
                 "windows" => Command::new("powershell")
@@ -82,10 +61,38 @@ fn main() {
                     .arg("Discord")
                     .spawn()
                     .expect("failed to close Discord"),
-            };}
+            };
+            print!("Discord is running!\nIf you are using it for help, type \"h\" to continue using it: ");
+            io::stdout().flush().unwrap();
+            let help = read_key(Duration::from_secs(60));
+            match help {
+                // Todo figureout how to start discord on mac and linux
+                Some(KeyEvent {
+                    code: KeyCode::Char('h'),
+                    modifiers: KeyModifiers::NONE,
+                }) => {
+                    println!("Help requested!");
+                    Command::new("powershell").arg("%HOMEPATH%\\Desktop\\Discord.lnk").spawn().expect("failed to open Discord");
+                    thread::sleep(Duration::from_secs(help_time*60));
+
+            },
+                Some(KeyEvent {
+                    code: KeyCode::Char('c'),
+                    modifiers: KeyModifiers::CONTROL,
+                }) => {
+                    println!("");
+                    exit(1);
+                },
+                _ => {
+                    println!("Help not requested!");
+                }
+
+        }
+        }
         } else if !ps.is_empty() {
             time_left -= 5;
         }
+        
         // wait for 2 minutes
         thread::sleep(std::time::Duration::from_secs(120));
     }
