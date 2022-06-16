@@ -4,6 +4,7 @@ use std::io::{self, Write};
 use std::process::{Command, exit};
 use std::thread;
 use std::time::{Duration, Instant};
+use std::env;
 
 use crossterm::{
     event::{self, Event, KeyCode, KeyEvent, KeyModifiers},
@@ -14,6 +15,10 @@ fn main() {
     let day = chrono::Local::today();
     let mut time_left = 120;
     let mut help_time= 5; // this defines time for help peroid
+    if env::args().len() > 1 {
+        help_time = env::args().nth(1).unwrap().parse::<u64>().unwrap();
+    }
+    println!("{}", help_time);
     loop {
         // check if its a new day
         if day != chrono::Local::today() {
