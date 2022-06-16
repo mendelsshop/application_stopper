@@ -20,6 +20,7 @@ fn main() {
             println!("New day!");
             time_left = 120;
         }
+        println!("{}", time_left);
         let ps: String = match OS {
             "windows" => {
                 let output = Command::new("powershell")
@@ -45,7 +46,7 @@ fn main() {
         };
         // check if there is time left
         if time_left == 0 && !ps.is_empty() {
-            loop {
+            // loop {
                 print!("Discord is running!\nIf you are using it for help, type \"help\" to continue using it: ");
                 io::stdout().flush().unwrap();
 
@@ -89,8 +90,8 @@ fn main() {
 
         }
         }
-        } else if !ps.is_empty() {
-            time_left -= 5;
+         else if !ps.is_empty() {
+            time_left -= 2;
         }
         
         // wait for 2 minutes
