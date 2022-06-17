@@ -5,7 +5,7 @@ use std::process::{Command, exit};
 use std::thread;
 use std::time::{Duration, Instant};
 use std::env;
-
+use home;
 use crossterm::{
     event::{self, Event, KeyCode, KeyEvent, KeyModifiers},
     terminal,
@@ -55,7 +55,7 @@ fn main() {
         // check if there is time left
         if time_left == 0 && !ps.is_empty() {
             // loop {
-                print!("Discord is running!\nIf you are using it for help, type \"help\" to continue using it: ");
+                // print!("Discord is running!\nIf you are using it for help, type \"help\" to continue using it: ");
                 io::stdout().flush().unwrap();
 
             println!("Time's up!");
@@ -81,7 +81,9 @@ fn main() {
                     modifiers: KeyModifiers::NONE,
                 }) => {
                     println!("Help requested!");
-                    Command::new("powershell").arg("%HOMEPATH%\\Desktop\\Discord.lnk").spawn().expect("failed to open Discord");
+                    let dir = home::home_dir().unwrap();
+                    let full = format!("{}\\Desktop\\Discord.lnk", dir.to_str().unwrap());
+                    Command::new("powershell").arg(full).spawn().expect("failed to open Discord");
                     thread::sleep(Duration::from_secs(help_time*60));
 
             },
