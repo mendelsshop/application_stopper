@@ -68,8 +68,10 @@ fn main() {
                 String::from_utf8_lossy(&output.stdout).into()
             }
             _ => {
-                let output = Command::new("ps")
-                    .arg("-ax")
+                let output = Command::new("sh")
+                    .arg("-c")
+                    .arg("ps")
+                    .arg("-axc")
                     .arg("|")
                     .arg("grep")
                     .arg("Discord")
@@ -77,8 +79,8 @@ fn main() {
                     .expect("Failed to execute ps");
                 String::from_utf8_lossy(&output.stdout).into()
             }
+
         };
-        // println!("{}", ps);
         // check if there is time left
         if time_left == 0 && !ps.is_empty() {
             // loop {
