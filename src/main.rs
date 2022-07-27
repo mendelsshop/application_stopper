@@ -28,7 +28,7 @@ fn main() {
         }
         println!("{}", time_left);
         println!("type 'h' for help");
-        let help = read_key(Duration::from_secs(60));
+        let help = read_key(Duration::from_secs(120));
         match help {
             // Todo figureout how to start discord on mac and linux
             Some(KeyEvent {
@@ -68,7 +68,7 @@ fn main() {
                 String::from_utf8_lossy(&output.stdout).into()
             }
             _ => {
-                let mut cmd  = Command::new("sh");
+                let mut cmd = Command::new("sh");
                 let output = cmd
                     .arg("-c")
                     .arg("ps -Axc | grep Discord")
@@ -77,12 +77,9 @@ fn main() {
 
                 String::from_utf8_lossy(&output.stdout).into()
             }
-
         };
         // check if there is time left
         if time_left == 0 && !ps.is_empty() {
-            // loop {
-            // print!("Discord is running!\nIf you are using it for help, type \"help\" to continue using it: ");
             io::stdout().flush().unwrap();
 
             println!("Time's up!");
@@ -98,14 +95,9 @@ fn main() {
                     .spawn()
                     .expect("failed to close Discord"),
             };
-            // print!("Discord is running!\nIf you are using it for help, type \"h\" to continue using it: ");
-            io::stdout().flush().unwrap();
         } else if !ps.is_empty() {
             time_left -= 2;
         }
-
-        // wait for 2 minutes
-        thread::sleep(std::time::Duration::from_secs(120));
     }
 }
 
