@@ -68,15 +68,13 @@ fn main() {
                 String::from_utf8_lossy(&output.stdout).into()
             }
             _ => {
-                let output = Command::new("sh")
+                let mut cmd  = Command::new("sh");
+                let output = cmd
                     .arg("-c")
-                    .arg("ps")
-                    .arg("-axc")
-                    .arg("|")
-                    .arg("grep")
-                    .arg("Discord")
+                    .arg("ps -Axc | grep Discord")
                     .output()
-                    .expect("Failed to execute ps");
+                    .expect("Failed to execute sh");
+
                 String::from_utf8_lossy(&output.stdout).into()
             }
 
