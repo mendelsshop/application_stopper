@@ -36,12 +36,24 @@ fn main() {
                 modifiers: KeyModifiers::NONE,
             }) => {
                 println!("Help requested!");
-                let dir = home::home_dir().unwrap();
-                let full = format!("{}\\Desktop\\Discord.lnk", dir.to_str().unwrap());
-                Command::new("powershell")
-                    .arg(full)
-                    .spawn()
-                    .expect("failed to open Discord");
+                match OS {
+                    "windows" => {
+                        let dir = home::home_dir().unwrap();
+                        let full = format!("{}\\Desktop\\Discord.lnk", dir.to_str().unwrap());
+                        Command::new("powershell")
+                            .arg(full)
+                            .spawn()
+                            .expect("failed to open Discord");
+                    }
+                    "macos" => {
+                        Command::new("open")
+                            .arg("-a")
+                            .arg("Discord")
+                            .spawn()
+                            .expect("failed to open Discord");
+                    }
+                    &_ => todo!()
+                }
                 thread::sleep(Duration::from_secs(help_time * 60));
             }
             Some(KeyEvent {
