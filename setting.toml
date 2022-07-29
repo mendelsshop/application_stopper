@@ -1,0 +1,12 @@
+urls = []
+[gist]
+gist_id = ''
+gist_file_name = ''
+github_token = ''
+github_user = ''
+
+[[apps]]
+name = 'Discord'
+time_left = 50
+last_sync = 1970-01-01
+help_time = 5
