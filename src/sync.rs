@@ -73,24 +73,12 @@ impl GistSync {
             }
         };
 
-        let body = self
-            .client
+        self.client
             .patch(request.clone())
             .basic_auth(config.github_user.clone(), config.github_token.clone())
-            .json(&body);
-
-        // println!("{}", body.clo.send()
-        // .await?.url());
-
-        println!("{}", body.send().await?.text().await?);
-        // let body = self
-        // .client
-        // .post(request)
-        // .basic_auth(config.github_user.clone(), config.github_token.clone())
-        // .send()
-        // .await?
-        // .text()
-        // .await?;
+            .json(&body)
+            .send()
+            .await?;
 
         Ok(())
     }
