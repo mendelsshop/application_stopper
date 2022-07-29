@@ -26,6 +26,7 @@ pub struct Time {
 }
 
 impl Config {
+    // TODO: make setttings.toml stored in root, or user's home directory.
     pub fn read_config() -> std::io::Result<Self> {
         let content = std::fs::read_to_string("setting.toml")?;
         Ok(toml::from_str(&content)?)
