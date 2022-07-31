@@ -12,6 +12,7 @@ use std::time::{Duration, Instant};
 // Todo make window pop up on top of all other windows if help is requested and pause discord unrtill help is closed
 // Todo make the interval for checking for Discord more often
 // Todo stop useing unwrap() for everything
+// use https://docs.rs/octocrab/latest/octocrab/gists/index.html for github api instead of doing it yourself
 fn main() {
     let mut day = chrono::Local::today();
     // let mut time_left = 50;
