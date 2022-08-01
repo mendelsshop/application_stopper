@@ -47,7 +47,9 @@ impl Config {
     }
 
     pub fn get_time_left(&self, app: String) -> u64 {
-        self.apps.iter().find(|x| x.name == app).unwrap().time_left
+        // TODO: find a way without creating a new Config object every time.
+        let self_ = Self::read_config().unwrap();
+        self_.apps.iter().find(|x| x.name == app).unwrap().time_left
     }
 
     pub fn get_help_time(&self, app: String) -> u64 {
