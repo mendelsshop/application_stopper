@@ -21,7 +21,10 @@ fn main() {
     let gist_sync = GistSync::new();
     gist_sync
         .sync(config.gist.clone().unwrap(), config.apps.clone())
-        .unwrap();
+        .unwrap_or_else(|e| {
+            println!("{}", e);
+            exit(1);
+        });
     env::args().for_each(|arg| {
         if arg == "--help" {
             println!("Aplication Stopper [--help] [--version] [--sync] [--help-time=<time>] [--time-left=<time>]");

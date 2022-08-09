@@ -1,7 +1,7 @@
-use std::error::Error;
-
+use std::{error::Error,};
+use directories;
 use serde::Serialize;
-use serde_derive::{Deserialize, Serialize};
+use serde_derive::{Deserialize};
 use toml;
 
 use crate::sync;
@@ -28,7 +28,34 @@ pub struct Time {
 impl Config {
     // TODO: make setttings.toml stored in root, or user's home directory.
     pub fn read_config() -> std::io::Result<Self> {
-        let content = std::fs::read_to_string("setting.toml")?;
+        let path = directories::ProjectDirs::from("", "", "app_stopper")
+            .unwrap()
+            .config_dir()
+            .join("settings.toml");
+        let content = match std::fs::read_to_string(&path) {
+            Ok(content) => content,
+            Err(_) => {
+                std::fs::create_dir(path.parent().unwrap())?;
+                std::fs::File::create(&path)?;
+                // add template
+                let template = r#"urls = []
+                [gist]
+                gist_id = ''
+                gist_file_name = ''
+                github_token = ''
+                github_user = ''
+                
+                [[apps]]
+                name = 'Discord'
+                time_left = 50
+                last_sync = 1970-01-01
+                help_time = 5"#;
+                std::fs::write(&path, template)?;
+                
+                    std::fs::read_to_string(&path)?
+                
+        }}
+        ;
         Ok(toml::from_str(&content)?)
     }
 

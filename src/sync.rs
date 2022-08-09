@@ -68,7 +68,6 @@ impl GistSync {
         let body = match serde_json::from_str::<serde_json::Value>(&body) {
             Ok(x) => x,
             Err(e) => {
-                println!("{}", e);
                 serde_json::Value::Null
             }
         };
