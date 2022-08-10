@@ -1,7 +1,7 @@
-use std::{error::Error,};
 use directories;
 use serde::Serialize;
-use serde_derive::{Deserialize};
+use serde_derive::Deserialize;
+use std::error::Error;
 use toml;
 
 use crate::sync;
@@ -40,7 +40,7 @@ impl Config {
                     std::fs::create_dir(path.parent().unwrap().parent().unwrap())?;
                 }
                 std::fs::create_dir(path.parent().unwrap())?;
-                
+
                 std::fs::File::create(&path)?;
                 // add template
                 let template = r#"urls = []
@@ -50,25 +50,29 @@ name = 'Discord'
 time_left = 50
 last_sync = 1970-01-01
 help_time = 5"#;
-            std::fs::write(&path, template)?;
-            std::fs::read_to_string(&path)?
-                
-        }}
-        ;
+                std::fs::write(&path, template)?;
+                std::fs::read_to_string(&path)?
+            }
+        };
         Ok(toml::from_str(&content)?)
     }
 
-    pub fn write_config(&mut self) -> Result<(), Box<(dyn Error + 'static)>> {
+    pub fn write_config(&mut self) -> Result<(), Box<dyn Error>> {
         let mut content = String::new();
         match self.serialize(&mut toml::Serializer::pretty(&mut content)) {
             Ok(_) => {
-                std::fs::write("setting.toml", content)?;
+                std::fs::write(
+                    directories::ProjectDirs::from("", "", "app_stopper")
+                        .unwrap()
+                        .config_dir()
+                        .join("settings.toml"),
+                    content,
+                )?;
             }
             Err(e) => {
                 return Err(Box::new(e));
             }
         }
-
         Ok(())
     }
 
@@ -79,13 +83,15 @@ help_time = 5"#;
     }
 
     pub fn get_help_time(&self, app: String) -> u64 {
-        self.apps.iter().find(|x| x.name == app).unwrap().help_time
+        // TODO: find a way without creating a new Config object every time.
+        let self_ = Self::read_config().unwrap();
+        self_.apps.iter().find(|x| x.name == app).unwrap().help_time
     }
 
-    pub fn set_time_left(&mut self, time: u64, app: String) {
+    pub fn set_time_left(&mut self, time: u64, app: String) -> Result<(), Box<dyn Error>> {
         let app = self.apps.iter_mut().find(|x| x.name == app).unwrap();
         app.time_left = time;
-        self.write_config().unwrap();
+        self.write_config()
     }
 
     pub fn set_help_time(&mut self, time: u64, app: String) {

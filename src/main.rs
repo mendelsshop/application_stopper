@@ -10,13 +10,12 @@ use std::io::{self, Write};
 use std::process::{exit, Command};
 use std::time::{Duration, Instant};
 // Todo make window pop up on top of all other windows if help is requested and pause discord unrtill help is closed
-// Todo make the interval for checking for Discord more often
+// Stop hardcoding everything to only work with discord
+// TODO: make this work without paniking when theres no place to sync to ie a url or gist
 // Todo stop useing unwrap() for everything
 // use https://docs.rs/octocrab/latest/octocrab/gists/index.html for github api instead of doing it yourself
 fn main() {
     let mut day = chrono::Local::today();
-    // let mut time_left = 50;
-    // let mut help_time = 5; // this defines time for help peroid
     let mut config = Config::read_config().unwrap();
     let gist_sync = GistSync::new();
     gist_sync
@@ -97,18 +96,17 @@ It will also check if Discord is running and if it is not, it will resume it.");
             gist_sync.sync(config.gist.clone().unwrap(), config.apps.clone()).unwrap();
         }
         else if arg.starts_with("--time-left") {
-            config.set_time_left(arg.split('=').collect::<Vec<&str>>()[1].parse::<u64>().unwrap(), "Discord".to_string());
+            config.set_time_left(arg.split('=').collect::<Vec<&str>>()[1].parse::<u64>().unwrap(), "Discord".to_string()).unwrap(); 
             gist_sync.sync(config.gist.clone().unwrap(), config.apps.clone()).unwrap();
         }
     });
-
-    println!("{}", config.get_help_time("Discord".to_string()));
+    println!("help time {}", config.get_help_time("Discord".to_string()));
     loop {
         // check if its a new day
         if day != chrono::Local::today() {
             println!("New day!");
             day = chrono::Local::today();
-            config.set_time_left(50, "Discord".to_string());
+            config.set_time_left(50, "Discord".to_string()).unwrap();
             gist_sync
                 .sync(config.gist.clone().unwrap(), config.apps.clone())
                 .unwrap();
@@ -146,14 +144,18 @@ It will also check if Discord is running and if it is not, it will resume it.");
                     }
                     &_ => todo!(),
                 }
-                config.set_time_left(
-                    config.get_time_left("Discord".to_string())
-                        + config.get_help_time("Discord".to_string()),
-                    "Discord".to_string(),
-                );
+                config
+                    .set_time_left(
+                        config.get_time_left("Discord".to_string())
+                            + config.get_help_time("Discord".to_string()),
+                        "Discord".to_string(),
+                    )
+                    .unwrap();
                 gist_sync
                     .sync(config.gist.clone().unwrap(), config.apps.clone())
                     .unwrap();
+                // sleeping fo 2 minutes or else the time left will be 3 not 5 minutes, b/c it will just go straight `let ps = ...` and will then autimamticly deduct two minutes from the time left
+                std::thread::sleep(Duration::from_secs(120));
             }
             Some(KeyEvent {
                 code: KeyCode::Char('c'),
@@ -192,7 +194,6 @@ It will also check if Discord is running and if it is not, it will resume it.");
         // check if there is time left
         if config.get_time_left("Discord".to_string()) == 0 && !ps.is_empty() {
             io::stdout().flush().unwrap();
-
             println!("Time's up!");
             match OS {
                 "windows" => Command::new("powershell")
@@ -207,10 +208,12 @@ It will also check if Discord is running and if it is not, it will resume it.");
                     .expect("failed to close Discord"),
             };
         } else if !ps.is_empty() {
-            config.set_time_left(
-                config.get_time_left("Discord".to_string()) - 2,
-                "Discord".to_string(),
-            );
+            config
+                .set_time_left(
+                    config.get_time_left("Discord".to_string()) - 2,
+                    "Discord".to_string(),
+                )
+                .unwrap();
             gist_sync
                 .sync(config.gist.clone().unwrap(), config.apps.clone())
                 .unwrap();
