@@ -35,24 +35,23 @@ impl Config {
         let content = match std::fs::read_to_string(&path) {
             Ok(content) => content,
             Err(_) => {
+                // check if the os is windows, if so, use the default settings.toml
+                if cfg!(target_os = "windows") {
+                    std::fs::create_dir(path.parent().unwrap().parent().unwrap())?;
+                }
                 std::fs::create_dir(path.parent().unwrap())?;
+                
                 std::fs::File::create(&path)?;
                 // add template
                 let template = r#"urls = []
-                [gist]
-                gist_id = ''
-                gist_file_name = ''
-                github_token = ''
-                github_user = ''
                 
-                [[apps]]
-                name = 'Discord'
-                time_left = 50
-                last_sync = 1970-01-01
-                help_time = 5"#;
-                std::fs::write(&path, template)?;
-                
-                    std::fs::read_to_string(&path)?
+[[apps]]
+name = 'Discord'
+time_left = 50
+last_sync = 1970-01-01
+help_time = 5"#;
+            std::fs::write(&path, template)?;
+            std::fs::read_to_string(&path)?
                 
         }}
         ;
