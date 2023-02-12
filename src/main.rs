@@ -117,7 +117,10 @@ It will also check if Discord is running and if it is not, it will resume it.");
         }
         println!("{}", config.get_time_left("Discord".to_string()));
         println!("type 'h' for help");
-        let help = read_key(Duration::from_secs(120));
+
+        let mut time = Duration::from_secs(120);
+
+        let help = read_key(&mut time);
         match help {
             // Todo figureout how to start discord on mac and linux
             Some(KeyEvent {
@@ -160,7 +163,7 @@ It will also check if Discord is running and if it is not, it will resume it.");
                     .sync(config.gist.clone().unwrap(), config.apps.clone())
                     .unwrap();
                 // sleeping fo 2 minutes or else the time left will be 3 not 5 minutes, b/c it will just go straight `let ps = ...` and will then autimamticly deduct two minutes from the time left
-                std::thread::sleep(Duration::from_secs(120));
+                std::thread::sleep(time);
             }
             Some(KeyEvent {
                 code: KeyCode::Char('c'),
@@ -171,6 +174,7 @@ It will also check if Discord is running and if it is not, it will resume it.");
                 exit(1);
             }
             _ => {
+                std::thread::sleep(time);
                 println!("Help not requested!");
             }
         }
@@ -228,7 +232,12 @@ It will also check if Discord is running and if it is not, it will resume it.");
     }
 }
 
-fn read_key(timeout: Duration) -> Option<KeyEvent> {
+
+// read_key is a function that will read a key from the terminal and return it
+// it will also return None if the timeout is reached
+// it uses raw mode so that it can read a key without pressing enter
+// it also changes the timeout so that it will be the timeout minus the time it took to read the key
+fn read_key(timeout: &mut Duration) -> Option<KeyEvent> {
     struct RawModeGuard;
     impl Drop for RawModeGuard {
         fn drop(&mut self) {
@@ -240,11 +249,13 @@ fn read_key(timeout: Duration) -> Option<KeyEvent> {
     let _guard = RawModeGuard;
     let start = Instant::now();
     let mut offset = Duration::ZERO;
-    while offset <= timeout && event::poll(timeout - offset).unwrap() {
+    while offset <= *timeout && event::poll(*timeout - offset).unwrap() {
         if let Event::Key(event) = event::read().unwrap() {
+            *timeout -= offset;
             return Some(event);
         }
         offset = start.elapsed();
     }
+    *timeout = Duration::ZERO;
     None
 }
