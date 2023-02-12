@@ -1,16 +1,19 @@
+use chrono::{Local, Date, TimeZone};
 use directories;
 use serde::Serialize;
 use serde_derive::Deserialize;
-use std::error::Error;
-use toml;
+use std::{error::Error, str::FromStr};
+use toml::{self, value::Datetime};
 
 use crate::sync;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Config {
+    pub day: Datetime,
     pub urls: Option<Vec<String>>,
     pub gist: Option<Gist>,
     pub apps: Vec<sync::Apps>,
+
 }
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Gist {
@@ -54,12 +57,13 @@ help_time = 5"#;
                 std::fs::read_to_string(&path)?
             }
         };
-        Ok(toml::from_str(&content)?)
+        toml::from_str(&content).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))
     }
 
     pub fn write_config(&mut self) -> Result<(), Box<dyn Error>> {
         let mut content = String::new();
-        match self.serialize(&mut toml::Serializer::pretty(&mut content)) {
+        println!("writing config: {:?}", self);
+        match self.serialize(toml::Serializer::pretty(&mut content)) {
             Ok(_) => {
                 std::fs::write(
                     directories::ProjectDirs::from("", "", "app_stopper")
@@ -70,6 +74,8 @@ help_time = 5"#;
                 )?;
             }
             Err(e) => {
+                println!("serialize Error: {}", content);
+                println!("parse Error: {}", e);
                 return Err(Box::new(e));
             }
         }
@@ -97,6 +103,19 @@ help_time = 5"#;
     pub fn set_help_time(&mut self, time: u64, app: String) {
         let app = self.apps.iter_mut().find(|x| x.name == app).unwrap();
         app.help_time = time;
+        self.write_config().unwrap();
+    }
+
+
+    pub fn get_day(&self) -> Date<Local> {
+        let self_ = Self::read_config().unwrap();
+        let mut date = self_.day.to_string();
+        date.push_str(" 00:00:00");
+        Local.datetime_from_str(&date, "%Y-%m-%d %H:%M:%S").unwrap().date()
+    }
+
+    pub fn set_day(&mut self, day: Date<Local>) {
+        self.day = Datetime::from_str(&day.format("%Y-%m-%d").to_string()).unwrap();
         self.write_config().unwrap();
     }
 }

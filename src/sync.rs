@@ -45,11 +45,19 @@ impl GistSync {
             .text()
             .await?;
 
+
         let body = serde_json::from_str::<serde_json::Value>(&body)?;
+
+
         let body = body["files"][&config.gist_file_name]["content"]
             .as_str()
             .unwrap();
+
+            println!("got body: {:?}", body);
         let mut body = toml::from_str::<SyncToml>(body)?;
+
+        println!("got body: {:?}", body);
+
         for mut i in &mut body.apps {
             for j in apps.iter() {
                 if i.name == j.name {
@@ -57,6 +65,9 @@ impl GistSync {
                 }
             }
         }
+
+        println!("set time lefts");
+
         let body = toml::to_string(&body)?;
         let body = body.replace('\"', "\\\"");
         let body = format!(
@@ -69,6 +80,8 @@ impl GistSync {
             Ok(x) => x,
             Err(_) => serde_json::Value::Null,
         };
+
+        println!("send: {:?}", body);
 
         self.client
             .patch(request.clone())

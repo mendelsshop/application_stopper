@@ -15,13 +15,15 @@ use std::time::{Duration, Instant};
 // Todo stop useing unwrap() for everything
 // use https://docs.rs/octocrab/latest/octocrab/gists/index.html for github api instead of doing it yourself
 fn main() {
-    let mut day = chrono::Local::today();
+    
     let mut config = Config::read_config().unwrap();
+    println!("cfg {:?}", config);
+    let mut day = config.get_day();
     let gist_sync = GistSync::new();
     gist_sync
         .sync(config.gist.clone().unwrap(), config.apps.clone())
         .unwrap_or_else(|e| {
-            println!("{}", e);
+            println!("error {}", e);
             exit(1);
         });
     env::args().for_each(|arg| {
@@ -101,11 +103,13 @@ It will also check if Discord is running and if it is not, it will resume it.");
         }
     });
     println!("help time {}", config.get_help_time("Discord".to_string()));
+    println!("time left {}", config.get_day());
     loop {
         // check if its a new day
         if day != chrono::Local::today() {
             println!("New day!");
             day = chrono::Local::today();
+            config.set_day(day);
             config.set_time_left(50, "Discord".to_string()).unwrap();
             gist_sync
                 .sync(config.gist.clone().unwrap(), config.apps.clone())
@@ -119,6 +123,7 @@ It will also check if Discord is running and if it is not, it will resume it.");
             Some(KeyEvent {
                 code: KeyCode::Char('h'),
                 modifiers: KeyModifiers::NONE,
+                ..
             }) => {
                 println!("Help requested!");
                 match OS {
@@ -160,6 +165,7 @@ It will also check if Discord is running and if it is not, it will resume it.");
             Some(KeyEvent {
                 code: KeyCode::Char('c'),
                 modifiers: KeyModifiers::CONTROL,
+                ..
             }) => {
                 println!();
                 exit(1);
@@ -210,7 +216,8 @@ It will also check if Discord is running and if it is not, it will resume it.");
         } else if !ps.is_empty() {
             config
                 .set_time_left(
-                    config.get_time_left("Discord".to_string()) - 2,
+                    // doing this so that it will never overflow when subtracting 2 from 0 and will just set it to 0
+                    config.get_time_left("Discord".to_string()).checked_sub(2).unwrap_or(0),
                     "Discord".to_string(),
                 )
                 .unwrap();
