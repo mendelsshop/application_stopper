@@ -104,6 +104,7 @@ It will also check if Discord is running and if it is not, it will resume it.");
     });
     println!("help time {}", config.get_help_time("Discord".to_string()));
     println!("time left {}", config.get_day());
+    let mut time = Duration::from_secs(120);
     loop {
         // check if its a new day
         if day != chrono::Local::today() {
@@ -117,8 +118,9 @@ It will also check if Discord is running and if it is not, it will resume it.");
         }
         println!("{}", config.get_time_left("Discord".to_string()));
         println!("type 'h' for help");
+        println!("type 'q' to quit");
+        println!("time {}", time.as_millis());
 
-        let mut time = Duration::from_secs(120);
 
         let help = read_key(&mut time);
         match help {
@@ -174,10 +176,18 @@ It will also check if Discord is running and if it is not, it will resume it.");
                 exit(1);
             }
             _ => {
-                std::thread::sleep(time);
+                
                 println!("Help not requested!");
+                // we want to wait however long is left in the time variable for input
+                // if we time is around 0 the we want to deduct 2 minutes from the time left
+                if time.as_millis() > 3 {
+                    println!("time left {}", time.as_millis());
+                    continue;
+                }
             }
         }
+
+        time = Duration::from_secs(120);
         let ps: String = match OS {
             "windows" => {
                 let output = Command::new("powershell")
@@ -251,7 +261,7 @@ fn read_key(timeout: &mut Duration) -> Option<KeyEvent> {
     let mut offset = Duration::ZERO;
     while offset <= *timeout && event::poll(*timeout - offset).unwrap() {
         if let Event::Key(event) = event::read().unwrap() {
-            *timeout -= offset;
+            *timeout -= start.elapsed();
             return Some(event);
         }
         offset = start.elapsed();
