@@ -4,7 +4,7 @@ use crossterm::{
     event::{self, Event, KeyCode, KeyEvent, KeyModifiers},
     terminal,
 };
-use std::env;
+use std::{env, error::Error};
 use std::env::consts::OS;
 use std::io::{self, Write};
 use std::process::{exit, Command};
@@ -131,29 +131,7 @@ It will also check if Discord is running and if it is not, it will resume it.");
                 ..
             }) => {
                 println!("Help requested!");
-                match OS {
-                    "windows" => {
-                        let dir = home::home_dir().unwrap();
-                        let full = format!("{}\\Desktop\\Discord.lnk", dir.to_str().unwrap());
-                        Command::new("powershell")
-                            .arg(full)
-                            .spawn()
-                            .expect("failed to open Discord");
-                    }
-                    "macos" => {
-                        Command::new("open")
-                            .arg("-a")
-                            .arg("Discord")
-                            .spawn()
-                            .expect("failed to open Discord");
-                    }
-                    "linux" => {
-                        Command::new("discord")
-                            .spawn()
-                            .expect("failed to open Discord");
-                    }
-                    &_ => todo!(),
-                }
+                launch();
                 config
                     .set_time_left(
                         config.get_time_left("Discord".to_string())
@@ -171,9 +149,21 @@ It will also check if Discord is running and if it is not, it will resume it.");
                 code: KeyCode::Char('c'),
                 modifiers: KeyModifiers::CONTROL,
                 ..
+            }) |
+            Some(KeyEvent {
+                code: KeyCode::Char('q'),
+                modifiers: KeyModifiers::NONE,
+                ..
             }) => {
                 println!();
                 exit(1);
+            }
+            Some(KeyEvent {
+                code: KeyCode::Char('r'),
+                modifiers: KeyModifiers::NONE,
+                ..
+            }) => {
+                launch();
             }
             _ => {
                 
@@ -268,4 +258,30 @@ fn read_key(timeout: &mut Duration) -> Option<KeyEvent> {
     }
     *timeout = Duration::ZERO;
     None
+}
+
+fn launch()  {
+    match OS {
+        "windows" => {
+            let dir = home::home_dir().unwrap();
+            let full = format!("{}\\Desktop\\Discord.lnk", dir.to_str().unwrap());
+            Command::new("powershell")
+                .arg(full)
+                .spawn()
+                .expect("failed to open Discord");
+        }
+        "macos" => {
+            Command::new("open")
+                .arg("-a")
+                .arg("Discord")
+                .spawn()
+                .expect("failed to open Discord");
+        }
+        "linux" => {
+            Command::new("discord")
+                .spawn()
+                .expect("failed to open Discord");
+        }
+        &_ => todo!(),
+    }
 }
