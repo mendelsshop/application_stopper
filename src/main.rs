@@ -143,7 +143,7 @@ It will also check if Discord is running and if it is not, it will resume it.");
                     .sync(config.gist.clone().unwrap(), config.apps.clone())
                     .unwrap();
                 // sleeping fo 2 minutes or else the time left will be 3 not 5 minutes, b/c it will just go straight `let ps = ...` and will then autimamticly deduct two minutes from the time left
-                std::thread::sleep(time);
+                continue;
             }
             Some(KeyEvent {
                 code: KeyCode::Char('c'),
