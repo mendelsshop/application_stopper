@@ -35,6 +35,7 @@ impl Config {
             .unwrap()
             .config_dir()
             .join("settings.toml");
+        println!("reading config: {:?}", path);
         let content = match std::fs::read_to_string(&path) {
             Ok(content) => content,
             Err(_) => {
