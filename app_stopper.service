@@ -1,0 +1,14 @@
+[Unit]
+Description=procastination prevention
+After=network.target
+StartLimitInterval=200
+StartLimitBurst=5
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5
+ExecStart=/home/mendel/proggraming/rust/discord_stopper/target/release/app_stopper
+
+[Install]
+WantedBy=default.target
